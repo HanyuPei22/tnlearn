@@ -1,0 +1,36 @@
+# This workflow will upload a Python Package using Twine when a release is created
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: unittest
+
+on: workflow_dispatch
+
+jobs:
+
+  unittest:
+    runs-on: windows-latest
+    steps:
+      - name: test_base
+        run: |
+          git clone https://github.com/NewT123-WM/tnlearn
+          cd tnlearn 
+          pip install torch>=2.1.0
+          pip install numpy>=1.26.4
+          pip install scikit-learn>=1.4.1.post1
+          pip install pandas>=2.2.1
+          pip install sympy>=1.12
+          pip install tqdm>=4.66.2
+          pip install matplotlib>=3.8.3
+          pip install ipython>=8.18.1
+          pip install torchinfo>=1.8.0
+          pip install h5py>=3.10.0
+          pip install setuptools>=68.2.2
+          python -m unittest
+          
+      
+    
