@@ -417,6 +417,8 @@ class PolyTensorRegressor(nn.Module):
     ``PolyTensorRegression`` remains the separate legacy CP/Tucker estimator.
     This searcher supports CP only and expects at least two finite samples.
     Classification labels must be integers in ``[0, num_classes)``.
+    ``reg_lambda_w`` controls the core weight L1 penalty; setting it to zero
+    disables weight regularization. Optimizer weight decay is not applied.
     """
 
     def __init__(self,
@@ -525,9 +527,9 @@ class PolyTensorRegressor(nn.Module):
 
         loss_fn = nn.CrossEntropyLoss() if self.task_type == 'classification' else nn.MSELoss()
         optimizer = torch.optim.Adam([
-            {'params': self.agent.core.coeffs_pure.parameters(), 'lr': self.learning_rate * 0.5, 'weight_decay': 1e-4},
+            {'params': self.agent.core.coeffs_pure.parameters(), 'lr': self.learning_rate * 0.5},
             {'params': [self.agent.bias], 'lr': self.learning_rate * 0.5},
-            {'params': self.agent.core.factors.parameters(), 'lr': self.learning_rate, 'weight_decay': 1e-5},
+            {'params': self.agent.core.factors.parameters(), 'lr': self.learning_rate},
             {'params': list(self.agent.bn_pure.parameters()) + list(self.agent.bn_int.parameters()), 'lr': self.learning_rate},
             {'params': list(self.agent.gates_pure.parameters()) + list(self.agent.gates_int.parameters()), 'lr': self.learning_rate},
         ])
