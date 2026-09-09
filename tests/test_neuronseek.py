@@ -173,6 +173,32 @@ def test_unsupported_search_settings_are_rejected(kwargs):
         PolyTensorRegressor(**kwargs)
 
 
+@pytest.mark.parametrize('reg_lambda_w', [0.0, 0.1])
+def test_weight_regularization_is_controlled_by_reg_lambda_w(monkeypatch, reg_lambda_w):
+    initial_weights = {}
+    original_forward = SparseSearchAgent.forward
+
+    def zero_task_output(agent, *args, **kwargs):
+        initial_weights.update({name: p.detach().clone()
+                                for name, p in agent.core.named_parameters()})
+        # Keep the real forward/backward path, but eliminate task gradients.
+        return original_forward(agent, *args, **kwargs) * 0
+
+    monkeypatch.setattr(SparseSearchAgent, 'forward', zero_task_output)
+    X = np.random.default_rng(1).normal(size=(4, 3)).astype(np.float32)
+    reg = PolyTensorRegressor(rank=2, poly_order=2, num_epochs=1, batch_size=4,
+                              reg_lambda_w=reg_lambda_w, reg_lambda_c=0,
+                              learning_rate=1e-5, device='cpu', random_state=1)
+    reg.fit(X, np.zeros(4, dtype=np.float32))
+    assert initial_weights
+    for name, parameter in reg.agent.core.named_parameters():
+        before = initial_weights[name]
+        if reg_lambda_w == 0:
+            torch.testing.assert_close(parameter, before, rtol=0, atol=0)
+        else:
+            assert parameter.detach().abs().sum() < before.abs().sum()
+
+
 def test_singleton_and_misaligned_training_data_are_rejected():
     reg = PolyTensorRegressor(device='cpu')
     with pytest.raises(ValueError, match='at least two'):
