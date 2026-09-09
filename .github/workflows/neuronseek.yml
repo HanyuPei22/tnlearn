@@ -2,7 +2,7 @@ name: NeuronSeek regression tests
 
 on:
   push:
-    branches: [codex/neuronseek-inner-product]
+    branches: [main, codex/neuronseek-inner-product]
   pull_request:
     paths:
       - 'tnlearn/**'
